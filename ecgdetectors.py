@@ -444,9 +444,15 @@ class Detectors:
         BME-32.3 (1985), pp. 230–236.
         """
         
+        # 若截止頻率為fs = 500Hz, Wn就為f / (fs / 2)
+        # 而分母的那個除以二底下用乘以二代替（signal.butter那一行）
         f1 = 5/self.fs
         f2 = 15/self.fs
 
+        # 帶通濾波器，只允許5到15Hz的頻率通過，
+        # 目的： 濾除肌肉電訊號干擾
+        # 1階的數位帶通濾波器
+        # [f1*2, f2*2]：是正規化的截止頻率，數值介於0到1之間
         b, a = signal.butter(1, [f1*2, f2*2], btype='bandpass')
 
         filtered_ecg = signal.lfilter(b, a, unfiltered_ecg)        
