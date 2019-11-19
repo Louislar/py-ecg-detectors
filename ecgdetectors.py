@@ -455,13 +455,17 @@ class Detectors:
         # [f1*2, f2*2]：是正規化的截止頻率，數值介於0到1之間
         b, a = signal.butter(1, [f1*2, f2*2], btype='bandpass')
 
+        # 對訊號進行帶通濾波
         filtered_ecg = signal.lfilter(b, a, unfiltered_ecg)        
 
+        # 對訊號微分，目的為求出斜率資訊
         diff = np.diff(filtered_ecg) 
 
+        # 對訊號平方
         squared = diff*diff
 
-        N = int(0.12*self.fs)
+        # 這邊應該是在做moving window integration吧?
+        N = int(0.12*self.fs)   # window大小
         mwa = MWA(squared, N)
         mwa[:int(0.2*self.fs)] = 0
 
@@ -522,16 +526,19 @@ class Detectors:
 
 
 def MWA(input_array, window_size):
+    '''
+    moving-window integration
+    '''
 
     mwa = np.zeros(len(input_array))
     for i in range(len(input_array)):
-        if i < window_size:
+        if i < window_size:         # 起始點小於window大小
             section = input_array[0:i]
         else:
             section = input_array[i-window_size:i]
         
         if i!=0:
-            mwa[i] = np.mean(section)
+            mwa[i] = np.mean(section)   # 取平均，是的取平均
         else:
             mwa[i] = input_array[i]
 
