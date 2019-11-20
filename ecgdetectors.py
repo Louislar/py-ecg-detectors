@@ -538,7 +538,7 @@ def MWA(input_array, window_size):
             section = input_array[i-window_size:i]
         
         if i!=0:
-            mwa[i] = np.mean(section)   # 取平均，是的取平均
+            mwa[i] = np.mean(section)   # 取平均，是的取平均，就是這麼簡單
         else:
             mwa[i] = input_array[i]
 
@@ -574,11 +574,13 @@ def panPeakDetect(detection, fs):
 
     for i in range(len(detection)):
 
-        if i>0 and i<len(detection)-1:
+        if i>0 and i<len(detection)-1:  # 從1開始，一直到最後一個index
+            # fiducial mark: local maximum偵測，只要integration wave form方向改變就算是peak
             if detection[i-1]<detection[i] and detection[i+1]<detection[i]:
                 peak = i
                 peaks.append(i)
 
+                # 如果新進來的peak被偵測為signal peak
                 if detection[peak]>threshold_I1 and (peak-signal_peaks[-1])>0.3*fs:
                         
                     signal_peaks.append(peak)
@@ -598,6 +600,7 @@ def panPeakDetect(detection, fs):
                                 signal_peaks.append(signal_peaks[-1])
                                 signal_peaks[-2] = missed_peak   
 
+                # 如果新進來的peak被偵測為noise peak
                 else:
                     noise_peaks.append(peak)
                     NPKI = 0.125*detection[noise_peaks[-1]] + 0.875*NPKI
@@ -605,6 +608,7 @@ def panPeakDetect(detection, fs):
                 threshold_I1 = NPKI + 0.25*(SPKI-NPKI)
                 threshold_I2 = 0.5*threshold_I1
 
+                # 有沒有RR間期漏偵測了
                 if len(signal_peaks)>8:
                     RR = np.diff(signal_peaks[-9:])
                     RR_ave = int(np.mean(RR))
